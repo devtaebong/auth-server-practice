@@ -1,5 +1,7 @@
 package com.taebong.auth_server.config
 
+import com.taebong.auth_server.entity.EntityModule
+import com.taebong.auth_server.repository.RepositoryModule
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.jdbc.DataSourceBuilder
@@ -12,8 +14,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import javax.sql.DataSource
 
 @Configuration
-@EntityScan
-@EnableJpaRepositories
+@EntityScan(basePackageClasses = [EntityModule::class])
+@EnableJpaRepositories(basePackageClasses = [RepositoryModule::class])
 class PersistenceJpaConfig {
     @Bean
     @ConfigurationProperties(prefix = "spring.datasource.hikari")
