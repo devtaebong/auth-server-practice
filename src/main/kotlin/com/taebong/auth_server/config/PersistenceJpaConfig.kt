@@ -29,14 +29,14 @@ class PersistenceJpaConfig {
     }
 
     @Bean
-    fun writeTransactionManager(transactionManager: PlatformTransactionManager): TransactionTemplate {
+    fun writeTransactionOperation(transactionManager: PlatformTransactionManager): TransactionTemplate {
         val transactionTemplate = TransactionTemplate(transactionManager)
         transactionTemplate.isReadOnly = false
         return transactionTemplate
     }
 
     @Bean
-    fun readTransactionManager(transactionManager: PlatformTransactionManager): TransactionTemplate {
+    fun readTransactionOperation(transactionManager: PlatformTransactionManager): TransactionTemplate {
         val transactionTemplate = TransactionTemplate(transactionManager)
         transactionTemplate.isReadOnly = true
         return transactionTemplate
