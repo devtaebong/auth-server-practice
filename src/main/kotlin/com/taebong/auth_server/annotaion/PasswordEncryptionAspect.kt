@@ -14,11 +14,31 @@ import java.lang.reflect.Modifier
 class PasswordEncryptionAspect(private val encryptService: EncryptService) {
     @Around("execution(* com.taebong.auth_server.controller.*.*(..))")
     fun passwordEncryptionAspect(pjp: ProceedingJoinPoint): Any {
-        pjp.args.forEach { fieldEncryption3(it) }
+        pjp.args.forEach { fieldEncryption(it) }
         return pjp.proceed()
     }
 
     private fun fieldEncryption(any: Any) {
+        if (ObjectUtils.isEmpty(any)) {
+            return
+        }
+
+        FieldUtils.getAllFieldsList(any.javaClass)
+            .filter { field ->
+                !(Modifier.isFinal(field.modifiers) && Modifier.isStatic(field.modifiers))
+            }
+            .forEach { field ->
+                val encryptionField = runCatching { FieldUtils.readField(field, any, true) }.getOrNull()
+                if (encryptionField is String && field.isAnnotationPresent(PasswordEncryption::class.java)) {
+                    val encrypted = runCatching { encryptService.encrypt(encryptionField) }.getOrNull()
+                    if (encrypted != null) {
+                        runCatching { FieldUtils.writeField(field, any, encrypted) }
+                    }
+                }
+            }
+    }
+
+    private fun fieldEncryption1(any: Any) {
         if (ObjectUtils.isEmpty(any)) {
             return
         }
@@ -66,26 +86,6 @@ class PasswordEncryptionAspect(private val encryptService: EncryptService) {
                     }
                 } catch (e: Exception) {
                     throw RuntimeException("Error while encrypting field: ${it.name}", e)
-                }
-            }
-    }
-
-    private fun fieldEncryption3(any: Any) {
-        if (ObjectUtils.isEmpty(any)) {
-            return
-        }
-
-        FieldUtils.getAllFieldsList(any.javaClass)
-            .filter { field ->
-                !(Modifier.isFinal(field.modifiers) && Modifier.isStatic(field.modifiers))
-            }
-            .forEach { field ->
-                val encryptionField = runCatching { FieldUtils.readField(field, any, true) }.getOrNull()
-                if (encryptionField is String && field.isAnnotationPresent(PasswordEncryption::class.java)) {
-                    val encrypted = runCatching { encryptService.encrypt(encryptionField) }.getOrNull()
-                    if (encrypted != null) {
-                        runCatching { FieldUtils.writeField(field, any, encrypted) }
-                    }
                 }
             }
     }
